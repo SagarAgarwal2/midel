@@ -6,4 +6,12 @@ const api = axios.create({
   timeout: 30000,
 })
 
+export async function fetchApiData() {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/data`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch /api/data: ${response.status}`)
+  }
+  return response.json()
+}
+
 export default api
