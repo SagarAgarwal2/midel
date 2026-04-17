@@ -51,6 +51,14 @@ def health() -> tuple:
     return jsonify({"status": "ok"}), 200
 
 
+@app.route("/")
+def home() -> dict:
+    return {
+        "status": "running",
+        "message": "Midel backend live 🚀",
+    }
+
+
 @app.post("/upload")
 def upload_file() -> tuple:
     file = request.files.get("file")
