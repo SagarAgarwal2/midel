@@ -20,6 +20,9 @@ export default function ChatPage() {
       const { data } = await api.post('/chat', { message: userMessage.content })
       setMessages((prev) => [...prev, { role: 'assistant', content: data.response }])
       setPlan(data.mitigation_plan || null)
+    } catch (error) {
+      const fallback = error?.response?.data?.error || error?.message || 'Failed to contact backend service.'
+      setMessages((prev) => [...prev, { role: 'assistant', content: `Backend error: ${fallback}` }])
     } finally {
       setLoading(false)
     }
