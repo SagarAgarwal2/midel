@@ -6,15 +6,20 @@ export default function RisksPage() {
   const [alerts, setAlerts] = useState([])
   const [agentRuns, setAgentRuns] = useState([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [threshold, setThreshold] = useState(70)
 
   const runRiskDetection = async () => {
     setLoading(true)
     try {
+      setError('')
       await api.post('/signals/poll')
       const { data } = await api.post('/risk/refresh', { threshold })
       setRecords(data.scores || [])
       setAlerts(data.alerts || [])
+    } catch (err) {
+      const message = err?.response?.data?.error || err?.message || 'Unable to refresh risk scores.'
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -23,8 +28,12 @@ export default function RisksPage() {
   const runAgentLoop = async () => {
     setLoading(true)
     try {
+      setError('')
       const { data } = await api.post('/agent/run', { threshold })
       setAgentRuns(data.workflows || [])
+    } catch (err) {
+      const message = err?.response?.data?.error || err?.message || 'Unable to run agentic workflow.'
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -32,6 +41,7 @@ export default function RisksPage() {
 
   return (
     <div className="space-y-6">
+      {error && <p className="rounded-xl bg-rose-100 p-3 text-sm text-rose-700">Backend error: {error}</p>}
       <h2 className="font-display text-3xl tracking-tight">Risk Detection Engine (15-minute cycle)</h2>
       <div className="flex items-center gap-3">
         <input

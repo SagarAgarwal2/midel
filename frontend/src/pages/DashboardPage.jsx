@@ -21,6 +21,7 @@ const PIE_COLORS = ['#22c55e', '#f59e0b', '#ef4444']
 export default function DashboardPage() {
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [simForm, setSimForm] = useState({ supplier: '', severity: 0.8, duration_days: 5 })
   const [simResult, setSimResult] = useState(null)
   const [simLoading, setSimLoading] = useState(false)
@@ -28,12 +29,16 @@ export default function DashboardPage() {
   useEffect(() => {
     const load = async () => {
       try {
+        setError('')
         await api.post('/signals/poll')
         await api.get('/risk/supplier-scores')
         const { data } = await api.get('/summary')
         setSummary(data)
         const firstSupplier = data?.supplier_heatmap?.[0]?.supplier || ''
         setSimForm((prev) => ({ ...prev, supplier: firstSupplier }))
+      } catch (err) {
+        const message = err?.response?.data?.error || err?.message || 'Unable to load dashboard data.'
+        setError(message)
       } finally {
         setLoading(false)
       }
@@ -50,8 +55,12 @@ export default function DashboardPage() {
     if (!simForm.supplier) return
     setSimLoading(true)
     try {
+      setError('')
       const { data } = await api.post('/simulate/what-if', simForm)
       setSimResult(data)
+    } catch (err) {
+      const message = err?.response?.data?.error || err?.message || 'Unable to run what-if simulation.'
+      setError(message)
     } finally {
       setSimLoading(false)
     }
@@ -70,6 +79,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {error && <p className="rounded-xl bg-rose-100 p-3 text-sm text-rose-700">Backend error: {error}</p>}
       <div>
         <h2 className="font-display text-3xl tracking-tight">Control Tower Dashboard</h2>
         <p className="mt-2 text-slate-500">Unified resilience view across suppliers, demand, and decisions.</p>

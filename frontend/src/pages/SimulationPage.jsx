@@ -14,6 +14,7 @@ export default function SimulationPage() {
   const [form, setForm] = useState(INITIAL)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const onChange = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -22,6 +23,7 @@ export default function SimulationPage() {
   const runSimulation = async () => {
     setLoading(true)
     try {
+      setError('')
       const { data } = await api.post('/decision', {
         ...form,
         explain: true,
@@ -31,6 +33,9 @@ export default function SimulationPage() {
         ],
       })
       setResult(data)
+    } catch (err) {
+      const message = err?.response?.data?.error || err?.message || 'Unable to run simulation.'
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -38,6 +43,7 @@ export default function SimulationPage() {
 
   return (
     <div className="space-y-6">
+      {error && <p className="rounded-xl bg-rose-100 p-3 text-sm text-rose-700">Backend error: {error}</p>}
       <h2 className="font-display text-3xl tracking-tight">Scenario Simulation</h2>
 
       <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-3">
